@@ -31,7 +31,21 @@ class Card {
         const cardElement = this.element.querySelector(".card");
         cardElement.classList.remove("flipped");
     }
+
+    toggleFlip() {
+        this.isFlipped = !this.isFlipped;
+        if (this.isFlipped) {
+            this.#flip();
+        } else {
+            this.#unflip();
+        }
+    }
+
+    matches(otherCard) {
+        return this.name === otherCard.name;
+    }
 }
+
 
 class Board {
     constructor(cards) {
@@ -58,6 +72,17 @@ class Board {
         this.fixedGridElement.className = `fixed-grid has-${columns}-cols`;
     }
 
+    shuffleCards() {
+        for (let i = this.cards.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [this.cards[i], this.cards[j]] = [this.cards[j], this.cards[i]];
+        }
+    }
+
+    flipDownAllCards() {
+        this.cards.forEach(card => card.toggleFlip());
+    }
+
     render() {
         this.#setGridColumns();
         this.gameBoardElement.innerHTML = "";
@@ -74,7 +99,14 @@ class Board {
             this.onCardClick(card);
         }
     }
+
+    reset() {
+        this.shuffleCards();
+        this.flipDownAllCards();
+        this.render();
+    }
 }
+
 
 class MemoryGame {
     constructor(board, flipDuration = 500) {
@@ -102,7 +134,25 @@ class MemoryGame {
             }
         }
     }
+
+    checkForMatch() {
+        const [firstCard, secondCard] = this.flippedCards;
+        if (firstCard.matches(secondCard)) {
+            this.matchedCards.push(firstCard, secondCard);
+        } else {
+            firstCard.toggleFlip();
+            secondCard.toggleFlip();
+        }
+        this.flippedCards = [];
+    }
+
+    resetGame() {
+        this.flippedCards = [];
+        this.matchedCards = [];
+        this.board.reset();
+    }
 }
+
 
 document.addEventListener("DOMContentLoaded", () => {
     const cardsData = [
